@@ -5,6 +5,7 @@
  */
 
 import React, { Component } from 'react';
+import Welcome from './app/Welcome';
 import Instant from './app/Instant';
 import {
   AppRegistry,
@@ -18,7 +19,8 @@ import {
 } from 'react-navigation';
 
 const trial = StackNavigator({
- Instant: { screen: Instant }
+ Welcome: { screen: Welcome },
+ Instant: { screen: Instant}
 });
 
 AppRegistry.registerComponent('trial', () => trial);
