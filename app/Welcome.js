@@ -1,6 +1,7 @@
 
 import React, { Component } from 'react';
 import Instant from './Instant';
+import { Button } from 'react-native-elements';
 import {
   AppRegistry,
   StyleSheet,
@@ -17,6 +18,7 @@ import {
 export default class Welcome extends Component {
 
   render() {
+    
     const { navigate } = this.props.navigation
     return (
       <View style={ styles.background }>
@@ -29,6 +31,19 @@ export default class Welcome extends Component {
             style={styles.logoImage}
             source={require('../public/SeekLogo.png')}/>
         </TouchableHighlight>
+        <Button style={styles.login}
+          title='Login with Facebook'
+          large={false}
+          backgroundColor='#3d5a99'
+          color='black'
+          icon={{
+            name: 'facebook-official', 
+            type: 'font-awesome',
+            color: 'black'
+          }}
+          
+        />
+
       </View>
     );
   }
@@ -36,7 +51,7 @@ export default class Welcome extends Component {
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: 'rgba(192, 57, 43, .9)',
+    backgroundColor: 'rgba(192, 57, 43, 1)',
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center'
@@ -49,6 +64,9 @@ const styles = StyleSheet.create({
   logoImage: {
     resizeMode: 'contain',
     width: 100
+  },
+  login: {
+    marginTop: 100,
   }
 });
 
