@@ -8,6 +8,7 @@
 import React, { Component } from 'react';
 import Card from './Card';
 import SwipeCards from 'react-native-swipe-cards';
+import Loading from './Loading';
 import { stringify } from 'query-string';
 import {
   AppRegistry,
@@ -121,7 +122,7 @@ venuesQuery({ latitude, longitude }, lookingFor) {
             cardRemoved={this.cardRemoved}
         />
       :
-        null
+        <Loading/>
     }
     </View>
     )
