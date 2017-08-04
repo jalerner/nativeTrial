@@ -122,7 +122,7 @@ venuesQuery({ latitude, longitude }, lookingFor) {
             cardRemoved={this.cardRemoved}
         />
       :
-        <Loading/>
+        <Loading />
     }
     </View>
     )
