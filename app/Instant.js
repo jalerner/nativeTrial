@@ -6,7 +6,7 @@
  */
 
 import React, { Component } from 'react';
-import Card from './Card';
+import Item from './Card';
 import SwipeCards from 'react-native-swipe-cards';
 import Loading from './Loading';
 import { stringify } from 'query-string';
@@ -15,7 +15,8 @@ import {
   StyleSheet,
   Text,
   View,
-  Button
+  Button,
+  Linking
 } from 'react-native';
 
 const CLIENT_ID = '40a55d80f964a52020f31ee3';
@@ -40,6 +41,8 @@ export default React.createClass({
   },
   handleYup (card) {
     console.log("yup")
+    const url = "http://maps.apple.com/?saddr=(40.7045412,-74.0112249)&daddr=(40.706737, -74.006794)&dirflg=w";
+    Linking.openURL(url).catch(err => console.error('An error occurred', err));
   },
   handleNope (card) {
     console.log("nope")
@@ -66,8 +69,8 @@ export default React.createClass({
   },
   componentWillMount() {
     let region = {
-      latitude: '37.785834',
-      longitude: '-122.406417'
+      latitude: '40.7045412',
+      longitude: '-74.0112249'
     }
     this.fetchVenues(region, 'food')
   },
@@ -104,6 +107,7 @@ venuesQuery({ latitude, longitude }, lookingFor) {
   });
 },
   render() {
+    console.log(this.state.cards)
     return (
       <View style={styles.container}>
       {
@@ -113,7 +117,7 @@ venuesQuery({ latitude, longitude }, lookingFor) {
             cards={this.state.cards}
             loop={false}
 
-            renderCard={(cardData) => <Card {...cardData} />}
+            renderCard={(cardData) => <Item {...cardData} />}
             showYup={true}
             showNope={true}
 
@@ -135,9 +139,7 @@ container: {
     top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    bottom: 0
   }
 })
 
