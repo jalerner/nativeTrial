@@ -80,6 +80,7 @@ export default React.createClass({
   fetchVenues(region, lookingFor) {
     // if (!this.shouldFetchVenues(lookingFor)) return;
     const query = this.venuesQuery(region, lookingFor);
+    console.log("HERE IS THE QUERY:", query)
     fetch(`${FOURSQUARE_ENDPOINT}?${query}`)
       .then(fetch.throwErrors)
       .then(res => res.json())

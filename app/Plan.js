@@ -1,80 +1,80 @@
 
-import React, { Component } from 'react';
-import {
-  StyleSheet,
-  View,
-  Picker
-} from 'react-native';
+import React, { Component } from "react";
+import { Platform } from "react-native";
+import { Container, TouchableHighlight, View, Header, Title, Content, Button, Icon, Text, Right, Body, Left, Picker, Form, Item } from "native-base";
+const pickerItem = Picker.pickerItem;
+import SortableListView from 'react-native-sortable-listview';
+import RowComponent from './RowComponent';
+import Test from './Test';
 
-import {
-  StackNavigator,
-} from 'react-navigation';
+let data = {
+  hello: { text: 'world' },
+  how: { text: 'are you' },
+  test: { text: 123 },
+  this: { text: 'is' },
+  a: { text: 'a' },
+  real: { text: 'real' },
+  drag: { text: 'drag and drop' },
+  bb: { text: 'bb' },
+  cc: { text: 'cc' },
+  dd: { text: 'dd' },
+  ee: { text: 'ee' },
+  ff: { text: 'ff' },
+  gg: { text: 'gg' },
+  hh: { text: 'hh' },
+  ii: { text: 'ii' },
+  jj: { text: 'jj' },
+  kk: { text: 'kk' },
+}
+
+let order = Object.keys(data) //Array of keys
 
 export default class Plan extends Component {
-
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
-      selected: 'Arts & Entertainment',
-      categories: [
-        { showUser: 'Arts & Entertainment', url: '4d4b7104d754a06370d81259' },
-        { showUser: 'College & University', url: '4d4b7105d754a06372d81259' },
-        { showUser: 'Event', url: '4d4b7105d754a06373d81259' },
-        { showUser: 'Food', url: '4d4b7105d754a06374d81259' },
-        { showUser: 'Nightlife Spot', url: '4d4b7105d754a06376d81259' },
-        { showUser: 'Outdoors & Recreation', url: '4d4b7105d754a06377d81259' },
-        { showUser: 'Professional & Other Places', url: '4d4b7105d754a06375d81259' },
-        { showUser: 'Residence', url: '4e67e38e036454776db1fb3a' },
-        { showUser: 'Shop & Service', url: '4d4b7105d754a06378d81259' },
-        { showUser: 'Travel & Transport', url: '4d4b7105d754a06379d81259' },
-      ]
+      selected2: undefined
     }
+    this.onValueChange.bind(this);
   }
-
-  renderItem() {
-    let items = [];
-    this.state.categories.forEach(category => {
-      items.push(<Picker.Item
-        label={category.showUser}
-        value={category.showUser}
-        key={category.url}
-      />)
-    })
-    return items;
+  onValueChange(value) {
+    this.setState({
+      selected2: value
+    });
   }
-
   render() {
-
     return (
-      <View>
-        <Picker
-          selectedValue={this.state.selected}
-          onValueChange={(itemValue) => this.setState({selected: itemValue})}>
-            {this.renderItem()}
-        </Picker>
-      </View>
+      <Container>
+        <Content>
+          <Form>
+            <Picker
+              mode="dropdown"
+              placeholder="Choose Your Weapon of Choice"
+              selectedValue={this.state.selected2}
+              onValueChange={
+                this.onValueChange.bind(this)
+              }
+            >
+              <pickerItem label="Wallet" value="key0" />
+              <pickerItem label="ATM Card" value="key1" />
+              <pickerItem label="Debit Card" value="key2" />
+              <pickerItem label="Credit Card" value="key3" />
+              <pickerItem label="Net Banking" value="key4" />
+            </Picker>
+          </Form>
+        </Content>
+          <SortableListView
+          style={{ flex: 1 }}
+          data={data}
+          order={order}
+          onRowMoved={e => {
+            order.splice(e.to, 0, order.splice(e.from, 1)[0])
+            this.forceUpdate()
+          }}
+          renderRow={row => <Test data={row} />}
+        />
+      </Container>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  background: {
-    backgroundColor: 'rgba(192, 57, 43, 1)',
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  welcomeImage: {
-    resizeMode: 'contain',
-    width: 200,
-    height: 150
-  },
-  logoImage: {
-    resizeMode: 'contain',
-    width: 100
-  },
-  login: {
-    marginTop: 100,
-  }
-});
 
