@@ -32,7 +32,7 @@ export default class Welcome extends Component {
     super(props)
   }
 
-  
+
 
   _fbAuth(navigate) {
         // const { navigate } = this.props.navigation
@@ -71,11 +71,11 @@ export default class Welcome extends Component {
           title='Login with Facebook'
           large={false}
           backgroundColor='#3d5a99'
-          color='black'
+          color='white'
           icon={{
-            name: 'facebook-official', 
+            name: 'facebook-official',
             type: 'font-awesome',
-            color: 'black'
+            color: 'white'
           }}
         />
       </View>
