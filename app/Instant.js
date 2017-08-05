@@ -5,6 +5,8 @@
  * @flow
  */
 
+ // venues/search?ll=40.7,-74&openNow=true&limit=30&radius=800&categoryId=4d4b7104d754a06370d81259,4d4b7105d754a06373d81259,4d4b7105d754a06374d81259,4d4b7105d754a06376d81259,4d4b7105d754a06377d81259,4d4b7105d754a06378d81259&intent=browse
+
 import React, { Component } from 'react';
 import Item from './Card';
 import SwipeCards from 'react-native-swipe-cards';
@@ -12,6 +14,9 @@ import Loading from './Loading';
 import { stringify } from 'query-string';
 import Tabs from 'react-native-tabs';
 import Tab from './Tab'
+import NoCards from './NoCards'
+const _ = require('lodash');
+
 import {
   AppRegistry,
   StyleSheet,
@@ -31,23 +36,25 @@ import {
   StackNavigator,
 } from 'react-navigation';
 
-export default React.createClass({
 
+export default React.createClass({
   getInitialState() {
     return {
       cards: [],
       outOfCards: false,
       headerLocation: null,
-      last4sqCall: {}
+      last4sqCall: {},
+      region: null,
+      gpsAccuracy: null,
+      watchID: null
     }
   },
   handleYup (card) {
-    console.log("yup")
-    const url = "http://maps.apple.com/?saddr=(40.7045412,-74.0112249)&daddr=(40.706737, -74.006794)&dirflg=w";
+    const url = `http://maps.apple.com/?saddr=(${this.state.region.latitude}, ${this.state.region.longitude})&daddr=(${card.venue.location.lat},${card.venue.location.lng})&dirflg=w`;
     Linking.openURL(url).catch(err => console.error('An error occurred', err));
   },
   handleNope (card) {
-    console.log("nope")
+    console.log("the card", card)
   },
   cardRemoved (index) {
     console.log(`The index is ${index}`);
@@ -70,11 +77,25 @@ export default React.createClass({
 
   },
   componentWillMount() {
-    let region = {
-      latitude: '40.7045412',
-      longitude: '-74.0112249'
-    }
-    this.fetchVenues(region, 'food')
+    this.state.watchID = navigator.geolocation.watchPosition((position) => {
+          let region = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              latitudeDelta: 0.00922*1.5,
+              longitudeDelta: 0.00421*1.5
+          }
+          this.onRegionChange(region, position.coords.accuracy);
+        })
+  },
+  componentWillUnmount() {
+    navigator.geolocation.clearWatch(this.state.watchID);
+  },
+  onRegionChange(region, gpsAccuracy) {
+    this.fetchVenues(region);
+    this.setState({
+      region: region,
+      gpsAccuracy: gpsAccuracy || this.state.gpsAccuracy
+    })
   },
 
   fetchVenues(region, lookingFor) {
@@ -87,9 +108,9 @@ export default React.createClass({
       .then(json => {
         if (json.response.groups) {
           this.setState({
-            cards: json.response.groups.reduce(
+            cards: _.shuffle(json.response.groups.reduce(
               (all, g) => all.concat(g ? g.items : []), []
-            ),
+            )),
             headerLocation: json.response.headerLocation,
             last4sqCall: new Date()
           });
@@ -103,10 +124,11 @@ venuesQuery({ latitude, longitude }, lookingFor) {
     ll: `${latitude}, ${longitude}`,
     oauth_token: TOKEN,
     v: v,
-    section: lookingFor || this.state.lookingFor || 'food',
-    limit: 10,
+    limit: 30,
     openNow: 1,
-    venuePhotos: 1
+    radius: 800,
+    venuePhotos: 1,
+    intent: 'browse'
   });
 },
   render() {
@@ -121,14 +143,12 @@ venuesQuery({ latitude, longitude }, lookingFor) {
             <SwipeCards
               cards={this.state.cards}
               loop={false}
-
+              renderNoMoreCards={() => <NoCards />}
               renderCard={(cardData) => <Item {...cardData} />}
               showYup={true}
               showNope={true}
-
               handleYup={this.handleYup}
               handleNope={this.handleNope}
-              cardRemoved={this.cardRemoved}
           />
         </View>
       :
@@ -145,7 +165,7 @@ container: {
     top: 0,
     left: 0,
     right: 0,
-    bottom: 0
+    bottom: 20
   }
 })
 
