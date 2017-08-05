@@ -1,20 +1,45 @@
-
 import React, { Component } from 'react';
 import Instant from './Instant';
+var {FBLoginManager} = require('react-native-facebook-login');
+import firebase from 'firebase'
+
 import {
   AppRegistry,
   StyleSheet,
   Text,
   View,
   Image,
-  TouchableHighlight
+  TouchableHighlight,
+  Button
 } from 'react-native';
 
 import {
   StackNavigator,
 } from 'react-navigation';
 
+var config = {
+   apiKey: 'AIzaSyC09UlafkITOf_1Qvxss3HfJJ7TsE8ETA0',
+   authDomain: 'stackathon-b6386.firebaseapp.com',
+   databaseURL: 'https://stackathon-b6386.firebaseio.com'
+}
+
+const firebaseRef = firebase.initializeApp(config)
+
 export default class Welcome extends Component {
+  _fbAuth() {
+      FBLoginManager.loginWithPermissions(['email'], (error, data) => {
+        if (!error) {
+          const credential = firebase.auth.FacebookAuthProvider.credential(data.credentials.token);
+          firebase
+            .auth()
+            .signInWithCredential(credential)
+            .then(() => alert('Account accepted'))
+            .catch((error) => alert('Account disabled'));
+        } else {
+          console.log(error, data);
+        }
+      });
+   }
 
   render() {
     const { navigate } = this.props.navigation
@@ -29,6 +54,7 @@ export default class Welcome extends Component {
             style={styles.logoImage}
             source={require('../public/SeekLogo.png')}/>
         </TouchableHighlight>
+        <Button title='Login' onPress={this._fbAuth}/>
       </View>
     );
   }
