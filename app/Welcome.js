@@ -27,7 +27,16 @@ var config = {
 const firebaseRef = firebase.initializeApp(config)
 
 export default class Welcome extends Component {
-  _fbAuth() {
+
+  constructor(props) {
+    super(props)
+  }
+
+  
+
+  _fbAuth(navigate) {
+        // const { navigate } = this.props.navigation
+
       FBLoginManager.loginWithPermissions(['email'], (error, data) => {
         if (!error) {
           const credential = firebase.auth.FacebookAuthProvider.credential(data.credentials.token);
@@ -35,7 +44,7 @@ export default class Welcome extends Component {
             .auth()
             .signInWithCredential(credential)
             .then(() => navigate('Tab'))
-            .catch((error) => alert('Account disabled'));
+            .catch(error => console.error(error));
         } else {
           console.log(error, data);
         }
@@ -43,7 +52,8 @@ export default class Welcome extends Component {
    }
 
   render() {
-    const { navigate } = this.props.navigation
+        const { navigate } = this.props.navigation
+
     return (
       <View style={ styles.background }>
         <Image
@@ -56,7 +66,7 @@ export default class Welcome extends Component {
             source={require('../public/SeekLogo.png')}/>
         </TouchableHighlight>
         <Button
-          onPress={this._fbAuth}
+          onPress={() => this._fbAuth(navigate)}
           style={styles.login}
           title='Login with Facebook'
           large={false}
