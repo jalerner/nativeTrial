@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import Instant from './Instant';
 import { Button } from 'react-native-elements';
+import Tab from './Tab'
 import {
   AppRegistry,
   StyleSheet,
@@ -17,8 +18,8 @@ import {
 
 export default class Welcome extends Component {
 
+
   render() {
-    
     const { navigate } = this.props.navigation
     return (
       <View style={ styles.background }>
@@ -26,12 +27,14 @@ export default class Welcome extends Component {
           style={styles.welcomeImage}
           source={require('../public/shades.png')}/>
         <TouchableHighlight
-          onPress={() => navigate('Instant')}>
+          onPress={() => navigate('Tab')}>
           <Image
             style={styles.logoImage}
             source={require('../public/SeekLogo.png')}/>
         </TouchableHighlight>
-        <Button style={styles.login}
+        <Button
+          onPress={() => navigate('Tab')}
+          style={styles.login}
           title='Login with Facebook'
           large={false}
           backgroundColor='#3d5a99'
@@ -41,9 +44,7 @@ export default class Welcome extends Component {
             type: 'font-awesome',
             color: 'black'
           }}
-          
         />
-
       </View>
     );
   }
@@ -51,7 +52,7 @@ export default class Welcome extends Component {
 
 const styles = StyleSheet.create({
   background: {
-    backgroundColor: 'rgba(192, 57, 43, 1)',
+    backgroundColor: 'rgba(192, 57, 43, .97)',
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center'

@@ -6,7 +6,9 @@
 
 import React, { Component } from 'react';
 import Welcome from './app/Welcome';
+import Tab from './app/Tab';
 import Instant from './app/Instant';
+import Plan from './app/Plan';
 import {
   AppRegistry,
   StyleSheet,
@@ -20,7 +22,9 @@ import {
 
 const trial = StackNavigator({
  Welcome: { screen: Welcome },
- Instant: { screen: Instant}
+ Tab: { screen: Tab },
+ Instant: { screen: Instant },
+ Plan: { screen: Plan }
 });
 
 AppRegistry.registerComponent('trial', () => trial);

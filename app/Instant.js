@@ -10,6 +10,8 @@ import Item from './Card';
 import SwipeCards from 'react-native-swipe-cards';
 import Loading from './Loading';
 import { stringify } from 'query-string';
+import Tabs from 'react-native-tabs';
+import Tab from './Tab'
 import {
   AppRegistry,
   StyleSheet,
@@ -108,23 +110,26 @@ venuesQuery({ latitude, longitude }, lookingFor) {
 },
   render() {
     console.log(this.state.cards)
+    console.log("Instant", this.props)
     return (
       <View style={styles.container}>
       {
         this.state.cards.length
         ?
-          <SwipeCards
-            cards={this.state.cards}
-            loop={false}
+          <View style={styles.container} >
+            <SwipeCards
+              cards={this.state.cards}
+              loop={false}
 
-            renderCard={(cardData) => <Item {...cardData} />}
-            showYup={true}
-            showNope={true}
+              renderCard={(cardData) => <Item {...cardData} />}
+              showYup={true}
+              showNope={true}
 
-            handleYup={this.handleYup}
-            handleNope={this.handleNope}
-            cardRemoved={this.cardRemoved}
-        />
+              handleYup={this.handleYup}
+              handleNope={this.handleNope}
+              cardRemoved={this.cardRemoved}
+          />
+        </View>
       :
         <Loading />
     }
