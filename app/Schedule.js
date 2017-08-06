@@ -12,6 +12,7 @@ import { stringify } from 'query-string';
 import Tabs from 'react-native-tabs';
 import Tab from './Tab'
 import NoCards from './NoCards'
+import {Button} from 'native-base'
 const _ = require('lodash');
 
 import {
@@ -19,7 +20,6 @@ import {
   StyleSheet,
   Text,
   View,
-  Button,
   Linking
 } from 'react-native';
 
@@ -38,15 +38,17 @@ export default class Schedule extends Component{
   constructor(props) {
     super(props);
     this.state={
-      cards: [],
+      cards: {},
       outOfCards: false,
       headerLocation: null,
       last4sqCall: {},
       region: null,
       gpsAccuracy: null,
       watchID: null,
+      ready: false,
       catID: this.props.navigation.state.params.category
     }
+    this.refresh = this.refresh.bind(this)
   }
 
   componentWillMount() {
@@ -73,17 +75,31 @@ export default class Schedule extends Component{
     })
   }
 
+  refresh(key){
+    console.log('refresh')
+    console.log(key)
+    let currentCards = this.state.cards
+    currentCards[key].index += 1
+    this.setState({cards: currentCards})
+  }
+
+
   fetchVenues(region, lookingFor) {
     const query = this.venuesQuery(region, lookingFor);
     Promise.all(this.state.catID.map(category => {
-      console.log(`${FOURSQUARE_ENDPOINT}?categoryId=${category}&${query}`)
       return(fetch(`${FOURSQUARE_ENDPOINT}?categoryId=${category}&${query}`)
              .then(fetch.throwErrors)
               .then(res => res.json())
+              .then(json => {
+                console.log(json.response.venues)
+                let currCards = this.state.cards
+                currCards[category] = {index: 0, places: json.response.venues}
+                console.log(currCards)
+                this.setState({cards: currCards})
+              })
              )
     })
     )
-    .then(values => this.setState({cards: this.state.cards.concat(values)}))
     .catch(err => console.log(err));
   }
 
@@ -92,7 +108,7 @@ export default class Schedule extends Component{
       ll: `${latitude}, ${longitude}`,
       oauth_token: TOKEN,
       v: v,
-      limit: 1,
+      limit: 10,
       openNow: 1,
       radius: 800,
       venuePhotos: 1
@@ -101,20 +117,24 @@ export default class Schedule extends Component{
   render() {
     console.log(this.state.cards)
     return (
-      <View style={styles.container}>
-      {
-        this.state.cards.length
-        ?
-          <View style={styles.container} >
-            {this.state.cards.map(card => {
-              return(<PlannedItem region={this.state.region} venue={card.response.venues[0]} />)
-            })
-            }
+        <View>
+        {this.state.cards ?
+          Object.keys(this.state.cards).map(key => {
+            return (
+                      <PlannedItem catId={key} ready={this.state.ready} refresh={this.refresh} venue={this.state.cards[key].places[this.state.cards[key].index]} />
+                    )
+          })
+          :
+          <Loading />
+        }
+        {!this.state.ready &&
+         <Button rounded success onPress={()=>this.setState({ready:true})}>
+            <Text style={{color: 'white'}}>Let's Go!</Text>
+          </Button>
+        }
         </View>
-      :
-        <Loading />
-    }
-    </View>
+
+
     )
   }
 }

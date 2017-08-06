@@ -24,6 +24,7 @@ export default class Plan extends Component {
       }
     }
     this.onValueChange.bind(this);
+    this.deleteRow = this.deleteRow.bind(this)
   }
   onValueChange(value) {
     const data = this.state.data;
@@ -34,6 +35,13 @@ export default class Plan extends Component {
       order: this.state.order.concat(value)
     });
   }
+
+  deleteRow(key){
+    let currentData = this.state.data
+    delete currentData[key]
+    this.setState({data: currentData, order: Object.keys(currentData)})
+  }
+
   render() {
     console.log(this.state.order)
     const catIdArr = this.state.order.map(item => {
@@ -67,12 +75,19 @@ export default class Plan extends Component {
             this.state.order.splice(e.to, 0, this.state.order.splice(e.from, 1)[0])
             this.forceUpdate()
           }}
-          renderRow={row => <Row data={row} />}
+          renderRow={row => <Row data={row} deleteMe={this.deleteRow}/>}
         />
-          <Button onPress={() => navigate('Schedule', {category: catIdArr})} style={styles.go}rounded iconRight dark>
+        {this.state.order.length ?
+          <Button disabled={false} onPress={() => navigate('Schedule', {category: catIdArr})} style={styles.go}rounded iconRight dark>
             <Text>Seek</Text>
             <Icon name='arrow-forward' />
           </Button>
+          :
+          <Button disabled style={styles.goDisabled}rounded iconRight dark>
+            <Text>Seek</Text>
+            <Icon name='arrow-forward' />
+          </Button>
+        }
       </Container>
     );
   }
@@ -83,6 +98,12 @@ go: {
     position: 'absolute',
     bottom: 60,
     right: 40
+  },
+goDisabled: {
+    position: 'absolute',
+    bottom: 60,
+    right: 40,
+    backgroundColor: 'grey'
   }
 })
 

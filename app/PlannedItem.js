@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { stringify } from 'query-string';
-import { Card, Button } from 'react-native-elements'
+import { Card, Button, Icon } from 'react-native-elements'
 import {
   AppRegistry,
   StyleSheet,
@@ -30,10 +30,15 @@ export default class PlannedItem extends React.Component {
     return (
         <Card
           title={this.props.venue.name}>
-          {this.state.show ?
-          <Button onPress={() => {this.getDirections(this.props.venue.location.lat, this.props.venue.location.lng)}}title='Go'></Button>
-          : <Text>Complete!</Text>
-        }
+          {!this.props.ready &&
+          <Icon
+            raised
+            reverse
+            name='refresh'
+            type='font-awesome'
+            color='#f50'
+            onPress={() => this.props.refresh(this.props.catId)} />
+          }
       </Card>
     );
   }
