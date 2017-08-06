@@ -9,6 +9,7 @@ import Welcome from './app/Welcome';
 import Tab from './app/Tab';
 import Instant from './app/Instant';
 import Plan from './app/Plan';
+import Schedule from './app/Schedule';
 import * as firebase from 'firebase';
 
 import {
@@ -27,7 +28,8 @@ const trial = StackNavigator({
  Tab: { screen: Tab },
  Instant: { screen: Instant },
  Plan: { screen: Plan },
- 
+ Schedule: {screen: Schedule}
+
 });
 
 AppRegistry.registerComponent('trial', () => trial);

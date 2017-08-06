@@ -1,48 +1,53 @@
 
 import React, { Component } from "react";
-import { Platform } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { Container, TouchableHighlight, View, Header, Title, Content, Button, Icon, Text, Right, Body, Left, Picker, Form, Item } from "native-base";
 const pickerItem = Picker.pickerItem;
 import SortableListView from 'react-native-sortable-listview';
-import RowComponent from './RowComponent';
-import Test from './Test';
+import Row from './Row';
+import { StackNavigator } from 'react-navigation';
 
-let data = {
-  hello: { text: 'world' },
-  how: { text: 'are you' },
-  test: { text: 123 },
-  this: { text: 'is' },
-  a: { text: 'a' },
-  real: { text: 'real' },
-  drag: { text: 'drag and drop' },
-  bb: { text: 'bb' },
-  cc: { text: 'cc' },
-  dd: { text: 'dd' },
-  ee: { text: 'ee' },
-  ff: { text: 'ff' },
-  gg: { text: 'gg' },
-  hh: { text: 'hh' },
-  ii: { text: 'ii' },
-  jj: { text: 'jj' },
-  kk: { text: 'kk' },
-}
 
-let order = Object.keys(data) //Array of keys
 
 export default class Plan extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selected2: undefined
+      selected2: undefined,
+      data: {},
+      order: [],
+      catIds: {
+        Food: "4d4b7105d754a06374d81259",
+        Entertainment: "4d4b7104d754a06370d81259",
+        Dessert: "4bf58dd8d48988d1d0941735",
+        Social: "4d4b7105d754a06376d81259",
+      }
     }
     this.onValueChange.bind(this);
+    this.deleteRow = this.deleteRow.bind(this)
   }
   onValueChange(value) {
+    const data = this.state.data;
+    data[value] = {text:value}
+
     this.setState({
-      selected2: value
+      data,
+      order: this.state.order.concat(value)
     });
   }
+
+  deleteRow(key){
+    let currentData = this.state.data
+    delete currentData[key]
+    this.setState({data: currentData, order: Object.keys(currentData)})
+  }
+
   render() {
+    console.log(this.state.order)
+    const catIdArr = this.state.order.map(item => {
+      return this.state.catIds[item]
+    })
+    const { navigate } = this.props
     return (
       <Container>
         <Content>
@@ -55,26 +60,51 @@ export default class Plan extends Component {
                 this.onValueChange.bind(this)
               }
             >
-              <pickerItem label="Wallet" value="key0" />
-              <pickerItem label="ATM Card" value="key1" />
-              <pickerItem label="Debit Card" value="key2" />
-              <pickerItem label="Credit Card" value="key3" />
-              <pickerItem label="Net Banking" value="key4" />
+              <pickerItem label="Food" value="Food" />
+              <pickerItem label="Entertainment" value="Entertainment" />
+              <pickerItem label="Dessert" value="Dessert" />
+              <pickerItem label="Social" value="Social" />
             </Picker>
           </Form>
         </Content>
-          <SortableListView
+        <SortableListView
           style={{ flex: 1 }}
-          data={data}
-          order={order}
+          data={this.state.data}
+          order={this.state.order}
           onRowMoved={e => {
-            order.splice(e.to, 0, order.splice(e.from, 1)[0])
+            this.state.order.splice(e.to, 0, this.state.order.splice(e.from, 1)[0])
             this.forceUpdate()
           }}
-          renderRow={row => <Test data={row} />}
+          renderRow={row => <Row data={row} deleteMe={this.deleteRow}/>}
         />
+        {this.state.order.length ?
+          <Button disabled={false} onPress={() => navigate('Schedule', {category: catIdArr})} style={styles.go}rounded iconRight dark>
+            <Text>Seek</Text>
+            <Icon name='arrow-forward' />
+          </Button>
+          :
+          <Button disabled style={styles.goDisabled}rounded iconRight dark>
+            <Text>Seek</Text>
+            <Icon name='arrow-forward' />
+          </Button>
+        }
       </Container>
     );
   }
 }
+
+const styles = StyleSheet.create({
+go: {
+    position: 'absolute',
+    bottom: 60,
+    right: 40
+  },
+goDisabled: {
+    position: 'absolute',
+    bottom: 60,
+    right: 40,
+    backgroundColor: 'grey'
+  }
+})
+
 

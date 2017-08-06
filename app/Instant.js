@@ -62,6 +62,33 @@ export default class Instant extends Component {
     this.yesUpdate(card)
   }
 
+  componentWillMount() {
+    this.state.watchID = navigator.geolocation.watchPosition((position) => {
+          let region = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              latitudeDelta: 0.00922*1.5,
+              longitudeDelta: 0.00421*1.5
+          }
+          this.onRegionChange(region, position.coords.accuracy);
+        })
+  }
+  
+  componentWillUnmount() {
+    navigator.geolocation.clearWatch(this.state.watchID);
+  }
+
+  onRegionChange(region, gpsAccuracy) {
+     this.fetchVenues(region, 'food')
+      .then(() => {
+        this.updateUserPlaces()
+      })
+    this.setState({
+      region: region,
+      gpsAccuracy: gpsAccuracy || this.state.gpsAccuracy
+    })
+  }
+
   yesUpdate(card) {
     let yes;
     return this.db.ref(
@@ -115,21 +142,9 @@ export default class Instant extends Component {
           })
   }
 
-  componentDidMount() {
-    let region = {
-      latitude: '40.7045412',
-      longitude: '-74.0112249'
-    }
-    this.fetchVenues(region, 'food')
-      .then(() => {
-        this.updateUserPlaces()
-      })
-  }
-
   fetchVenues(region, lookingFor) {
     // if (!this.shouldFetchVenues(lookingFor)) return;
     const query = this.venuesQuery(region, lookingFor);
-    console.log("HERE IS THE QUERY:", query)
     return fetch(`${FOURSQUARE_ENDPOINT}?${query}`)
       .then(fetch.throwErrors)
       .then(res => res.json())
@@ -195,7 +210,6 @@ export default class Instant extends Component {
   }
 
   render() {
-    console.log("HERE ARE THE SORTED PALCES:", this.state.sortedPlaces)
     return (
       <View style={styles.container}>
       {
@@ -231,30 +245,3 @@ container: {
     bottom: 0
   }
 })
-
-// const styles = StyleSheet.create({
-//   card: {
-//     alignItems: 'center',
-//     borderRadius: 5,
-//     overflow: 'hidden',
-//     borderColor: 'grey',
-//     backgroundColor: 'white',
-//     borderWidth: 1,
-//     elevation: 1,
-//   },
-//   thumbnail: {
-//     flex: 1,
-//     width: 300,
-//     height: 300,
-//   },
-//   text: {
-//     fontSize: 20,
-//     paddingTop: 10,
-//     paddingBottom: 10
-//   },
-//   noMoreCards: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   }
-// })
