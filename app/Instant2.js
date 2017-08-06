@@ -13,6 +13,9 @@ import { stringify } from 'query-string';
 import Tabs from 'react-native-tabs';
 import Tab from './Tab'
 import firebase from 'firebase'
+import NoCards from './NoCards'
+const _ = require('lodash');
+
 import {
   AppRegistry,
   StyleSheet,
@@ -42,7 +45,6 @@ export default class Instant extends Component {
       headerLocation: null,
       last4sqCall: {}
     }
-    this.cardRemoved = this.cardRemoved.bind(this)
   }
 
   handleYup (card) {
@@ -54,28 +56,6 @@ export default class Instant extends Component {
   handleNope (card) {
     console.log("nope")
   }
-  cardRemoved (index) {
-    console.log("cards state:", this.state)
-
-    console.log(`The index is ${index}`);
-
-    let CARD_REFRESH_LIMIT = 3
-
-    // if (this.state.cards.length - index <= CARD_REFRESH_LIMIT + 1) {
-    //   console.log(`There are only ${this.state.cards.length - index - 1} cards left.`);
-
-      if (!this.state.outOfCards) {
-        console.log(`Adding ${Cards2.length} more cards`)
-
-        this.setState({
-          cards: this.state.cards.concat(Cards2),
-          outOfCards: true
-        })
-      }
-
-    //}
-  }
-
   componentDidMount() {
     let region = {
       latitude: '40.7045412',
@@ -118,7 +98,7 @@ export default class Instant extends Component {
   }
 
   render() {
-    console.log("state cards from render:", this.state.cards)
+    console.log(this.state.cards)
     console.log("Instant", this.props)
     return (
       <View style={styles.container}>
@@ -129,14 +109,12 @@ export default class Instant extends Component {
             <SwipeCards
               cards={this.state.cards}
               loop={false}
-
+              renderNoMoreCards={() => <NoCards />}
               renderCard={(cardData) => <Item {...cardData} />}
               showYup={true}
               showNope={true}
-
               handleYup={this.handleYup}
               handleNope={this.handleNope}
-              cardRemoved={this.cardRemoved}
           />
         </View>
       :

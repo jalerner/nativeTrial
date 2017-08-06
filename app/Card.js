@@ -1,4 +1,3 @@
-
 import React, { Component } from 'react';
 import { stringify } from 'query-string';
 import { Card, Button } from 'react-native-elements'
@@ -17,15 +16,16 @@ export default class Item extends React.Component {
   };
 
   render() {
-    console.log(this.props.venue)
     const photoItem = this.props.venue.featuredPhotos.items[0];
     return (
         <Card
           title={this.props.venue.name}
           image={{uri: `${photoItem.prefix}${photoItem.width}x${photoItem.height}${photoItem.suffix}` }}>
+          {this.props.tips &&
           <Text style={styles.quote}>
             "{this.props.tips[0].text}" - {this.props.tips[0].user.firstName}
           </Text>
+          }
           <Button
             icon={{name: 'favorite'}}
             backgroundColor='#ee6e73'
