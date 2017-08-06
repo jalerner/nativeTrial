@@ -10,6 +10,7 @@ import Tab from './app/Tab';
 import Instant from './app/Instant';
 import Plan from './app/Plan';
 import Schedule from './app/Schedule';
+import * as firebase from 'firebase';
 
 import {
   AppRegistry,
