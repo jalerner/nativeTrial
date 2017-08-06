@@ -12,6 +12,7 @@ import Loading from './Loading';
 import { stringify } from 'query-string';
 import Tabs from 'react-native-tabs';
 import Tab from './Tab'
+import firebase from 'firebase'
 import {
   AppRegistry,
   StyleSheet,
@@ -31,6 +32,11 @@ import {
   StackNavigator,
 } from 'react-navigation';
 
+
+    // this.itemsRef = firebaseApp.database().ref()
+    // this.itemsRef.push({Olivia: 'LETS EDIT THE DATABASE'})
+
+
 export default React.createClass({
 
   getInitialState() {
@@ -45,6 +51,7 @@ export default React.createClass({
     console.log("yup")
     const url = "http://maps.apple.com/?saddr=(40.7045412,-74.0112249)&daddr=(40.706737, -74.006794)&dirflg=w";
     Linking.openURL(url).catch(err => console.error('An error occurred', err));
+
   },
   handleNope (card) {
     console.log("nope")

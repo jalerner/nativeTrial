@@ -3,7 +3,9 @@ import Instant from './Instant';
 import { Button } from 'react-native-elements';
 import Tab from './Tab'
 const {FBLoginManager} = require('react-native-facebook-login');
-import firebase from 'firebase'
+// import firebase from 'firebase'
+import * as firebase from 'firebase';
+
 
 import {
   AppRegistry,
@@ -24,18 +26,50 @@ var config = {
    databaseURL: 'https://stackathon-b6386.firebaseio.com'
 }
 
-const firebaseRef = firebase.initializeApp(config)
+export const firebaseApp = firebase.initializeApp(config)
 
 export default class Welcome extends Component {
 
   constructor(props) {
     super(props)
+    this.dbRef = firebaseApp.database().ref()
   }
 
-  
+  listenForItems(dbRef) {
+    dbRef.on('value', snap => console.log("VALUE SHOULD BE HERE:", snap.val()))
+  }
+
+  // listenForItems(dbRef) {
+  //   dbRef.on('value', (snap) => {
+  //     let items = []
+  //     snap.forEach((child) => {
+  //       console.log("ind db item:", child)
+  //       items.push({
+  //         title: child.val().title,
+  //         _key: child._key,
+  //         userId: child.userId,
+  //         email: child.email,
+  //         name: child.name
+  //       });
+  //     });
+  //     console.log("should be database children as an array:", items)
+  //     // this.setState({
+  //     //   dataSource: this.state.dataSource.cloneWithRows(items)
+  //     // })
+  //   })
+  // }
+
+  componentDidMount() {
+    this.listenForItems(this.dbRef)
+  }
+
+
+    // this.itemsRef = firebaseApp.database().ref()
+    // this.itemsRef.push({Olivia: 'LETS EDIT THE DATABASE'})
+
 
   _fbAuth(navigate) {
-        // const { navigate } = this.props.navigation
+  // const { navigate } = this.props.navigation
 
       FBLoginManager.loginWithPermissions(['email'], (error, data) => {
         if (!error) {
@@ -43,7 +77,14 @@ export default class Welcome extends Component {
           firebase
             .auth()
             .signInWithCredential(credential)
-            .then(() => navigate('Tab'))
+            .then((user) => {
+              this.dbRef.push({
+                userId: user.uid,
+                email: user.email,
+                name: user.displayName
+              })
+              navigate('Tab')
+            })
             .catch(error => console.error(error));
         } else {
           console.log(error, data);
@@ -52,7 +93,9 @@ export default class Welcome extends Component {
    }
 
   render() {
-        const { navigate } = this.props.navigation
+
+    console.log("HERE IS THE DB STATE OBJECT:", this.dbRef)
+    const { navigate } = this.props.navigation
 
     return (
       <View style={ styles.background }>
