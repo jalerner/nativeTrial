@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import Instant from './Instant';
 import { Button } from 'react-native-elements';
 import Tab from './Tab'
 const {FBLoginManager} = require('react-native-facebook-login');
-// import firebase from 'firebase'
 import * as firebase from 'firebase';
 
 
@@ -42,13 +40,12 @@ export default class Welcome extends Component {
   writeUserData(user) {
     this.db.ref('users/' + user.uid).set({
       userId: user.uid,
-      email: 'THISISATEST EDIT EMAIL',
+      email: user.email,
       name: user.displayName
     })
   }
 
   _fbAuth(navigate) {
-  // const { navigate } = this.props.navigation
 
       FBLoginManager.loginWithPermissions(['email'], (error, data) => {
         if (!error) {

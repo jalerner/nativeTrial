@@ -1,6 +1,6 @@
 
 import React, { Component } from 'react';
-import Instant2 from './Instant2';
+import Instant from './Instant';
 import Plan from './Plan';
 import MaterialCommunity from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -41,7 +41,7 @@ export default class Tab extends Component {
           iconName="fire"
           onPress={() => this.setState({selectedTab: 'Instant'})}
           >
-          <Instant2 />
+          <Instant />
         </MaterialCommunity.TabBarItem>
         <Ionicons.TabBarItem
           selected={this.state.selectedTab === 'Plan'}
@@ -57,7 +57,7 @@ export default class Tab extends Component {
           iconName="md-heart"
           onPress={() => this.setState({selectedTab: 'Favs'})}
           >
-          <Instant2 />
+          <Instant />
         </Ionicons.TabBarItem>
       </TabBarIOS>
     )

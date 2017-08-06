@@ -7,7 +7,7 @@
 import React, { Component } from 'react';
 import Welcome from './app/Welcome';
 import Tab from './app/Tab';
-import Instant2 from './app/Instant2';
+import Instant from './app/Instant';
 import Plan from './app/Plan';
 import * as firebase from 'firebase';
 
@@ -25,7 +25,7 @@ import {
 const trial = StackNavigator({
  Welcome: { screen: Welcome },
  Tab: { screen: Tab },
- Instant2: { screen: Instant2 },
+ Instant: { screen: Instant },
  Plan: { screen: Plan },
  
 });

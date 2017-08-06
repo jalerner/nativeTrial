@@ -5,8 +5,6 @@
  * @flow
  */
 
- // venues/search?ll=40.7,-74&openNow=true&limit=30&radius=800&categoryId=4d4b7104d754a06370d81259,4d4b7105d754a06373d81259,4d4b7105d754a06374d81259,4d4b7105d754a06376d81259,4d4b7105d754a06377d81259,4d4b7105d754a06378d81259&intent=browse
-
 import React, { Component } from 'react';
 import Item from './Card';
 import SwipeCards from 'react-native-swipe-cards';
@@ -37,72 +35,34 @@ import {
   StackNavigator,
 } from 'react-navigation';
 
+export default class Instant extends Component {
 
-    // this.itemsRef = firebaseApp.database().ref()
-    // this.itemsRef.push({Olivia: 'LETS EDIT THE DATABASE'})
-
-
-export default React.createClass({
-  getInitialState() {
-    return {
+  constructor(props) {
+    super(props)
+    this.state = {
       cards: [],
       outOfCards: false,
       headerLocation: null,
-      last4sqCall: {},
-      region: null,
-      gpsAccuracy: null,
-      watchID: null
+      last4sqCall: {}
     }
-  },
+  }
+
   handleYup (card) {
-    const url = `http://maps.apple.com/?saddr=(${this.state.region.latitude}, ${this.state.region.longitude})&daddr=(${card.venue.location.lat},${card.venue.location.lng})&dirflg=w`;
+    console.log("yup")
+    const url = "http://maps.apple.com/?saddr=(40.7045412,-74.0112249)&daddr=(40.706737, -74.006794)&dirflg=w";
     Linking.openURL(url).catch(err => console.error('An error occurred', err));
 
-  },
+  }
   handleNope (card) {
-    console.log("the card", card)
-  },
-  cardRemoved (index) {
-    console.log(`The index is ${index}`);
-
-    let CARD_REFRESH_LIMIT = 3
-
-    if (this.state.cards.length - index <= CARD_REFRESH_LIMIT + 1) {
-      console.log(`There are only ${this.state.cards.length - index - 1} cards left.`);
-
-      if (!this.state.outOfCards) {
-        console.log(`Adding ${Cards2.length} more cards`)
-
-        this.setState({
-          cards: this.state.cards.concat(Cards2),
-          outOfCards: true
-        })
-      }
-
+    console.log("nope")
+  }
+  componentDidMount() {
+    let region = {
+      latitude: '40.7045412',
+      longitude: '-74.0112249'
     }
-
-  },
-  componentWillMount() {
-    this.state.watchID = navigator.geolocation.watchPosition((position) => {
-          let region = {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              latitudeDelta: 0.00922*1.5,
-              longitudeDelta: 0.00421*1.5
-          }
-          this.onRegionChange(region, position.coords.accuracy);
-        })
-  },
-  componentWillUnmount() {
-    navigator.geolocation.clearWatch(this.state.watchID);
-  },
-  onRegionChange(region, gpsAccuracy) {
-    this.fetchVenues(region);
-    this.setState({
-      region: region,
-      gpsAccuracy: gpsAccuracy || this.state.gpsAccuracy
-    })
-  },
+    this.fetchVenues(region, 'food')
+  }
 
   fetchVenues(region, lookingFor) {
     // if (!this.shouldFetchVenues(lookingFor)) return;
@@ -114,29 +74,29 @@ export default React.createClass({
       .then(json => {
         if (json.response.groups) {
           this.setState({
-            cards: _.shuffle(json.response.groups.reduce(
+            cards: json.response.groups.reduce(
               (all, g) => all.concat(g ? g.items : []), []
-            )),
+            ),
             headerLocation: json.response.headerLocation,
             last4sqCall: new Date()
           });
         }
       })
         .catch(err => console.log(err));
-  },
+  }
 
-venuesQuery({ latitude, longitude }, lookingFor) {
-  return stringify({
-    ll: `${latitude}, ${longitude}`,
-    oauth_token: TOKEN,
-    v: v,
-    limit: 30,
-    openNow: 1,
-    radius: 800,
-    venuePhotos: 1,
-    intent: 'browse'
-  });
-},
+  venuesQuery({ latitude, longitude }, lookingFor) {
+    return stringify({
+      ll: `${latitude}, ${longitude}`,
+      oauth_token: TOKEN,
+      v: v,
+      section: lookingFor || this.state.lookingFor || 'food',
+      limit: 10,
+      openNow: 1,
+      venuePhotos: 1
+    });
+  }
+
   render() {
     console.log(this.state.cards)
     console.log("Instant", this.props)
@@ -163,7 +123,8 @@ venuesQuery({ latitude, longitude }, lookingFor) {
     </View>
     )
   }
-})
+
+}
 
 const styles = StyleSheet.create({
 container: {
@@ -171,7 +132,7 @@ container: {
     top: 0,
     left: 0,
     right: 0,
-    bottom: 20
+    bottom: 0
   }
 })
 
