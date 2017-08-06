@@ -29,6 +29,8 @@ export default class Tab extends Component {
   }
 
   render() {
+    const { navigate } = this.props.navigation
+
     return (
       <TabBarIOS
         selectedTab={this.state.selectedTab}
@@ -49,7 +51,7 @@ export default class Tab extends Component {
           iconName="md-list"
           onPress={() => this.setState({selectedTab: 'Plan'})}
           >
-          <Plan />
+          <Plan navigate={navigate}/>
         </Ionicons.TabBarItem>
         <Ionicons.TabBarItem
           selected={this.state.selectedTab === 'Favs'}

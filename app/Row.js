@@ -1,11 +1,11 @@
 
 import React, { Component } from "react";
-import { Platform, TouchableHighlight } from "react-native";
-import { Container, View, Header, Title, Content, Button, Icon, Text, Right, Body, Left, Picker, Form, Item } from "native-base";
+import { Platform, TouchableHighlight, View } from "react-native";
+import { Container, Header, Title, Content, Button, Icon, Text, Right, Body, Left, Picker, Form, Item } from "native-base";
 const pickerItem = Picker.pickerItem;
 import SortableListView from 'react-native-sortable-listview';
 
-export default class Test extends Component {
+export default class Row extends Component {
 
   render() {
     return (
@@ -19,7 +19,7 @@ export default class Test extends Component {
         }}
         {...this.props.sortHandlers}
       >
-        <Text>{this.props.data.text}</Text>
+          <Text>{this.props.data.text}</Text>
       </TouchableHighlight>      )
   }
 

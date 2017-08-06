@@ -6,8 +6,7 @@
  */
 
 import React, { Component } from 'react';
-import Item from './Card';
-import SwipeCards from 'react-native-swipe-cards';
+import PlannedItem from './PlannedItem';
 import Loading from './Loading';
 import { stringify } from 'query-string';
 import Tabs from 'react-native-tabs';
@@ -27,7 +26,7 @@ import {
 const CLIENT_ID = '40a55d80f964a52020f31ee3';
 const TOKEN = '2ONTTMJ3BVPLQWWICXYE04SMVFZWCC5D3YWIUHHEIZJOD4ZF';
 const v = '20170803';
-const FOURSQUARE_ENDPOINT = 'https://api.foursquare.com/v2/venues/explore';
+const FOURSQUARE_ENDPOINT = 'https://api.foursquare.com/v2/venues/search';
 const API_DEBOUNCE_TIME = 2000;
 
 import {
@@ -35,26 +34,23 @@ import {
 } from 'react-navigation';
 
 
-export default React.createClass({
-  getInitialState() {
-    return {
+export default class Schedule extends Component{
+  constructor(props) {
+    super(props);
+    this.state={
       cards: [],
       outOfCards: false,
       headerLocation: null,
       last4sqCall: {},
       region: null,
       gpsAccuracy: null,
-      watchID: null
+      watchID: null,
+      catID: this.props.navigation.state.params.category
     }
-  },
-  handleYup (card) {
-    const url = `http://maps.apple.com/?saddr=(${this.state.region.latitude}, ${this.state.region.longitude})&daddr=(${card.venue.location.lat},${card.venue.location.lng})&dirflg=w`;
-    Linking.openURL(url).catch(err => console.error('An error occurred', err));
-  },
-  handleNope (card) {
-  },
+  }
+
   componentWillMount() {
-    this.state.watchID = navigator.geolocation.watchPosition((position) => {
+    navigator.geolocation.getCurrentPosition((position) => {
           let region = {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
@@ -63,67 +59,57 @@ export default React.createClass({
           }
           this.onRegionChange(region, position.coords.accuracy);
         })
-  },
+  }
+
   componentWillUnmount() {
     navigator.geolocation.clearWatch(this.state.watchID);
-  },
+  }
+
   onRegionChange(region, gpsAccuracy) {
     this.fetchVenues(region);
     this.setState({
       region: region,
       gpsAccuracy: gpsAccuracy || this.state.gpsAccuracy
     })
-  },
+  }
 
   fetchVenues(region, lookingFor) {
-    // if (!this.shouldFetchVenues(lookingFor)) return;
     const query = this.venuesQuery(region, lookingFor);
-    fetch(`${FOURSQUARE_ENDPOINT}?${query}`)
-      .then(fetch.throwErrors)
-      .then(res => res.json())
-      .then(json => {
-        if (json.response.groups) {
-          this.setState({
-            cards: _.shuffle(json.response.groups.reduce(
-              (all, g) => all.concat(g ? g.items : []), []
-            )),
-            headerLocation: json.response.headerLocation,
-            last4sqCall: new Date()
-          });
-        }
-      })
-        .catch(err => console.log(err));
-  },
+    Promise.all(this.state.catID.map(category => {
+      console.log(`${FOURSQUARE_ENDPOINT}?categoryId=${category}&${query}`)
+      return(fetch(`${FOURSQUARE_ENDPOINT}?categoryId=${category}&${query}`)
+             .then(fetch.throwErrors)
+              .then(res => res.json())
+             )
+    })
+    )
+    .then(values => this.setState({cards: this.state.cards.concat(values)}))
+    .catch(err => console.log(err));
+  }
 
-venuesQuery({ latitude, longitude }, lookingFor) {
-  return stringify({
-    ll: `${latitude}, ${longitude}`,
-    oauth_token: TOKEN,
-    v: v,
-    limit: 30,
-    openNow: 1,
-    radius: 800,
-    venuePhotos: 1,
-    intent: 'browse'
-  });
-},
+  venuesQuery({ latitude, longitude }, lookingFor) {
+    return stringify({
+      ll: `${latitude}, ${longitude}`,
+      oauth_token: TOKEN,
+      v: v,
+      limit: 1,
+      openNow: 1,
+      radius: 800,
+      venuePhotos: 1
+    });
+  }
   render() {
+    console.log(this.state.cards)
     return (
       <View style={styles.container}>
       {
         this.state.cards.length
         ?
           <View style={styles.container} >
-            <SwipeCards
-              cards={this.state.cards}
-              loop={false}
-              renderNoMoreCards={() => <NoCards />}
-              renderCard={(cardData) => <Item {...cardData} />}
-              showYup={true}
-              showNope={true}
-              handleYup={this.handleYup}
-              handleNope={this.handleNope}
-          />
+            {this.state.cards.map(card => {
+              return(<PlannedItem region={this.state.region} venue={card.response.venues[0]} />)
+            })
+            }
         </View>
       :
         <Loading />
@@ -131,7 +117,7 @@ venuesQuery({ latitude, longitude }, lookingFor) {
     </View>
     )
   }
-})
+}
 
 const styles = StyleSheet.create({
 container: {
