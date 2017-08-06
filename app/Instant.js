@@ -5,8 +5,6 @@
  * @flow
  */
 
- // venues/search?ll=40.7,-74&openNow=true&limit=30&radius=800&categoryId=4d4b7104d754a06370d81259,4d4b7105d754a06373d81259,4d4b7105d754a06374d81259,4d4b7105d754a06376d81259,4d4b7105d754a06377d81259,4d4b7105d754a06378d81259&intent=browse
-
 import React, { Component } from 'react';
 import Item from './Card';
 import SwipeCards from 'react-native-swipe-cards';
@@ -14,8 +12,10 @@ import Loading from './Loading';
 import { stringify } from 'query-string';
 import Tabs from 'react-native-tabs';
 import Tab from './Tab'
+import * as firebase from 'firebase';
 import NoCards from './NoCards'
 const _ = require('lodash');
+import { firebaseApp } from './Welcome';
 
 import {
   AppRegistry,
@@ -36,104 +36,166 @@ import {
   StackNavigator,
 } from 'react-navigation';
 
+export default class Instant extends Component {
 
-export default React.createClass({
-  getInitialState() {
-    return {
+  constructor(props) {
+    super(props)
+    this.state = {
       cards: [],
       outOfCards: false,
       headerLocation: null,
       last4sqCall: {},
-      region: null,
-      gpsAccuracy: null,
-      watchID: null
+      sortedPlaces: []
     }
-  },
+    this.db = firebaseApp.database()
+    this.userPlaces = []
+    this.handleYup = this.handleYup.bind(this)
+    this.handleNope = this.handleNope.bind(this)
+    this.test = [2,4,3,1]
+  }
+
   handleYup (card) {
-    const url = `http://maps.apple.com/?saddr=(${this.state.region.latitude}, ${this.state.region.longitude})&daddr=(${card.venue.location.lat},${card.venue.location.lng})&dirflg=w`;
+    console.log("yup")
+    const url = "http://maps.apple.com/?saddr=(40.7045412,-74.0112249)&daddr=(40.706737, -74.006794)&dirflg=w";
     Linking.openURL(url).catch(err => console.error('An error occurred', err));
-  },
+    // update db
+    this.yesUpdate(card)
+  }
+
+  yesUpdate(card) {
+    let yes;
+    return this.db.ref(
+      '/users/' + this.props.userId +
+      '/places/' + card.id).once('value')
+        .then(snap => {
+          yes = snap.val()
+            ? (Object.keys(snap.val()).includes('yes')
+              ? snap.val().yes + 1 : 1)
+            : 1
+        })
+          .then(() => {
+            this.db.ref('users/' + this.props.userId +
+              '/places/' + card.id).update({
+                id: card.id,
+                name: card.name,
+                image: card.image,
+                reviewInfo: card.reviewInfo,
+                yes: yes
+              })
+          })
+  }
+
   handleNope (card) {
-    console.log("the card", card)
-  },
-  cardRemoved (index) {
-    console.log(`The index is ${index}`);
+    console.log("card:", card)
+    // console.log("nope")
+    // console.log('userId:', this.props.userId, 'cardId:', card.venue.id)
+    this.noUpdate(card)
+  }
 
-    let CARD_REFRESH_LIMIT = 3
-
-    if (this.state.cards.length - index <= CARD_REFRESH_LIMIT + 1) {
-      console.log(`There are only ${this.state.cards.length - index - 1} cards left.`);
-
-      if (!this.state.outOfCards) {
-        console.log(`Adding ${Cards2.length} more cards`)
-
-        this.setState({
-          cards: this.state.cards.concat(Cards2),
-          outOfCards: true
+  noUpdate(card) {
+    let no;
+    return this.db.ref(
+      '/users/' + this.props.userId +
+      '/places/' + card.id).once('value')
+        .then(snap => {
+          no = snap.val()
+            ? (Object.keys(snap.val()).includes('no')
+              ? snap.val().no + 1 : 1)
+            : 1
         })
-      }
+          .then(() => {
+            this.db.ref('users/' + this.props.userId +
+              '/places/' + card.id).update({
+                id: card.id,
+                name: card.name,
+                image: card.image,
+                reviewInfo: card.reviewInfo,
+                no: no
+              })
+          })
+  }
 
+  componentDidMount() {
+    let region = {
+      latitude: '40.7045412',
+      longitude: '-74.0112249'
     }
-
-  },
-  componentWillMount() {
-    this.state.watchID = navigator.geolocation.watchPosition((position) => {
-          let region = {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              latitudeDelta: 0.00922*1.5,
-              longitudeDelta: 0.00421*1.5
-          }
-          this.onRegionChange(region, position.coords.accuracy);
-        })
-  },
-  componentWillUnmount() {
-    navigator.geolocation.clearWatch(this.state.watchID);
-  },
-  onRegionChange(region, gpsAccuracy) {
-    this.fetchVenues(region);
-    this.setState({
-      region: region,
-      gpsAccuracy: gpsAccuracy || this.state.gpsAccuracy
-    })
-  },
+    this.fetchVenues(region, 'food')
+      .then(() => {
+        this.updateUserPlaces()
+      })
+  }
 
   fetchVenues(region, lookingFor) {
     // if (!this.shouldFetchVenues(lookingFor)) return;
     const query = this.venuesQuery(region, lookingFor);
     console.log("HERE IS THE QUERY:", query)
-    fetch(`${FOURSQUARE_ENDPOINT}?${query}`)
+    return fetch(`${FOURSQUARE_ENDPOINT}?${query}`)
       .then(fetch.throwErrors)
       .then(res => res.json())
       .then(json => {
         if (json.response.groups) {
           this.setState({
-            cards: _.shuffle(json.response.groups.reduce(
+            cards: json.response.groups.reduce(
               (all, g) => all.concat(g ? g.items : []), []
-            )),
+            ),
             headerLocation: json.response.headerLocation,
             last4sqCall: new Date()
           });
         }
       })
         .catch(err => console.log(err));
-  },
+  }
 
-venuesQuery({ latitude, longitude }, lookingFor) {
-  return stringify({
-    ll: `${latitude}, ${longitude}`,
-    oauth_token: TOKEN,
-    v: v,
-    limit: 30,
-    openNow: 1,
-    radius: 800,
-    venuePhotos: 1,
-    intent: 'browse'
-  });
-},
+  venuesQuery({ latitude, longitude }, lookingFor) {
+    return stringify({
+      ll: `${latitude}, ${longitude}`,
+      oauth_token: TOKEN,
+      v: v,
+      section: lookingFor || this.state.lookingFor || 'food',
+      limit: 30,
+      openNow: 1,
+      venuePhotos: 1
+    });
+  }
+
+  updateUserPlaces() {
+    Promise.all(this.state.cards.map(card => {
+      let yes = 0;
+      let no = 0;
+      return this.db.ref(
+        'users/' + this.props.userId + 
+        '/places/' + card.venue.id).once('value')
+        .then(snap => {
+          if (snap.val()) {
+            yes = snap.val().yes ? snap.val().yes : 0
+            no = snap.val().no ? snap.val().no : 0
+          }
+        })
+          .then(() => {
+            const photoItem = card.venue.featuredPhotos.items[0];
+            this.userPlaces.push({
+              id: card.venue.id,
+              name: card.venue.name,
+              image: photoItem.prefix + photoItem.width + 'x' + photoItem.height + photoItem.suffix,
+              reviewInfo: card.tips,
+              pref: this.calcPref(yes, no)
+            })
+          })
+    })
+    // ).then(() => this.setState({ sortedPlaces : _.sortBy(this.userPlaces, ['pref']) } ))
+    ).then(() => this.setState({ sortedPlaces : _.orderBy(this.userPlaces, ['pref'], ['desc']) } ))
+    // ).then(() => this.setState({ sortedPlaces : this.userPlaces.sort((a,b) => b['pref']-a['pref']) } ))
+  }
+
+  calcPref(yes, no) {
+    const yesVal = Math.min(1, 0.1 * yes)
+    const noVal = Math.max(-1, -0.1 * no)
+    return 1 + yesVal + noVal
+  }
+
   render() {
-    console.log(this.state.cards)
-    console.log("Instant", this.props)
+    console.log("HERE ARE THE SORTED PALCES:", this.state.sortedPlaces)
     return (
       <View style={styles.container}>
       {
@@ -141,7 +203,7 @@ venuesQuery({ latitude, longitude }, lookingFor) {
         ?
           <View style={styles.container} >
             <SwipeCards
-              cards={this.state.cards}
+              cards={this.state.sortedPlaces}
               loop={false}
               renderNoMoreCards={() => <NoCards />}
               renderCard={(cardData) => <Item {...cardData} />}
@@ -157,7 +219,8 @@ venuesQuery({ latitude, longitude }, lookingFor) {
     </View>
     )
   }
-})
+
+}
 
 const styles = StyleSheet.create({
 container: {
@@ -165,7 +228,7 @@ container: {
     top: 0,
     left: 0,
     right: 0,
-    bottom: 20
+    bottom: 0
   }
 })
 
