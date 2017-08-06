@@ -16,14 +16,15 @@ export default class Item extends React.Component {
   };
 
   render() {
-    const photoItem = this.props.venue.featuredPhotos.items[0];
+    console.log("new props", this.props)
+    // const photoItem = this.props.venue.featuredPhotos.items[0];
     return (
         <Card
-          title={this.props.venue.name}
-          image={{uri: `${photoItem.prefix}${photoItem.width}x${photoItem.height}${photoItem.suffix}` }}>
-          {this.props.tips &&
+          title={this.props.name}
+          image={{uri: this.props.image }}>
+          {this.props.reviewInfo &&
           <Text style={styles.quote}>
-            "{this.props.tips[0].text}" - {this.props.tips[0].user.firstName}
+            "{this.props.reviewInfo[0].text}" - {this.props.reviewInfo[0].user.firstName}
           </Text>
           }
           <Button

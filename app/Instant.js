@@ -12,9 +12,10 @@ import Loading from './Loading';
 import { stringify } from 'query-string';
 import Tabs from 'react-native-tabs';
 import Tab from './Tab'
-import firebase from 'firebase'
+import * as firebase from 'firebase';
 import NoCards from './NoCards'
 const _ = require('lodash');
+import { firebaseApp } from './Welcome';
 
 import {
   AppRegistry,
@@ -43,32 +44,93 @@ export default class Instant extends Component {
       cards: [],
       outOfCards: false,
       headerLocation: null,
-      last4sqCall: {}
+      last4sqCall: {},
+      sortedPlaces: []
     }
+    this.db = firebaseApp.database()
+    this.userPlaces = []
+    this.handleYup = this.handleYup.bind(this)
+    this.handleNope = this.handleNope.bind(this)
+    this.test = [2,4,3,1]
   }
 
   handleYup (card) {
     console.log("yup")
     const url = "http://maps.apple.com/?saddr=(40.7045412,-74.0112249)&daddr=(40.706737, -74.006794)&dirflg=w";
     Linking.openURL(url).catch(err => console.error('An error occurred', err));
+    // update db
+    this.yesUpdate(card)
+  }
 
+  yesUpdate(card) {
+    let yes;
+    return this.db.ref(
+      '/users/' + this.props.userId +
+      '/places/' + card.id).once('value')
+        .then(snap => {
+          yes = snap.val()
+            ? (Object.keys(snap.val()).includes('yes')
+              ? snap.val().yes + 1 : 1)
+            : 1
+        })
+          .then(() => {
+            this.db.ref('users/' + this.props.userId +
+              '/places/' + card.id).update({
+                id: card.id,
+                name: card.name,
+                image: card.image,
+                reviewInfo: card.reviewInfo,
+                yes: yes
+              })
+          })
   }
+
   handleNope (card) {
-    console.log("nope")
+    console.log("card:", card)
+    // console.log("nope")
+    // console.log('userId:', this.props.userId, 'cardId:', card.venue.id)
+    this.noUpdate(card)
   }
+
+  noUpdate(card) {
+    let no;
+    return this.db.ref(
+      '/users/' + this.props.userId +
+      '/places/' + card.id).once('value')
+        .then(snap => {
+          no = snap.val()
+            ? (Object.keys(snap.val()).includes('no')
+              ? snap.val().no + 1 : 1)
+            : 1
+        })
+          .then(() => {
+            this.db.ref('users/' + this.props.userId +
+              '/places/' + card.id).update({
+                id: card.id,
+                name: card.name,
+                image: card.image,
+                reviewInfo: card.reviewInfo,
+                no: no
+              })
+          })
+  }
+
   componentDidMount() {
     let region = {
       latitude: '40.7045412',
       longitude: '-74.0112249'
     }
     this.fetchVenues(region, 'food')
+      .then(() => {
+        this.updateUserPlaces()
+      })
   }
 
   fetchVenues(region, lookingFor) {
     // if (!this.shouldFetchVenues(lookingFor)) return;
     const query = this.venuesQuery(region, lookingFor);
     console.log("HERE IS THE QUERY:", query)
-    fetch(`${FOURSQUARE_ENDPOINT}?${query}`)
+    return fetch(`${FOURSQUARE_ENDPOINT}?${query}`)
       .then(fetch.throwErrors)
       .then(res => res.json())
       .then(json => {
@@ -91,15 +153,49 @@ export default class Instant extends Component {
       oauth_token: TOKEN,
       v: v,
       section: lookingFor || this.state.lookingFor || 'food',
-      limit: 10,
+      limit: 30,
       openNow: 1,
       venuePhotos: 1
     });
   }
 
+  updateUserPlaces() {
+    Promise.all(this.state.cards.map(card => {
+      let yes = 0;
+      let no = 0;
+      return this.db.ref(
+        'users/' + this.props.userId + 
+        '/places/' + card.venue.id).once('value')
+        .then(snap => {
+          if (snap.val()) {
+            yes = snap.val().yes ? snap.val().yes : 0
+            no = snap.val().no ? snap.val().no : 0
+          }
+        })
+          .then(() => {
+            const photoItem = card.venue.featuredPhotos.items[0];
+            this.userPlaces.push({
+              id: card.venue.id,
+              name: card.venue.name,
+              image: photoItem.prefix + photoItem.width + 'x' + photoItem.height + photoItem.suffix,
+              reviewInfo: card.tips,
+              pref: this.calcPref(yes, no)
+            })
+          })
+    })
+    // ).then(() => this.setState({ sortedPlaces : _.sortBy(this.userPlaces, ['pref']) } ))
+    ).then(() => this.setState({ sortedPlaces : _.orderBy(this.userPlaces, ['pref'], ['desc']) } ))
+    // ).then(() => this.setState({ sortedPlaces : this.userPlaces.sort((a,b) => b['pref']-a['pref']) } ))
+  }
+
+  calcPref(yes, no) {
+    const yesVal = Math.min(1, 0.1 * yes)
+    const noVal = Math.max(-1, -0.1 * no)
+    return 1 + yesVal + noVal
+  }
+
   render() {
-    console.log(this.state.cards)
-    console.log("Instant", this.props)
+    console.log("HERE ARE THE SORTED PALCES:", this.state.sortedPlaces)
     return (
       <View style={styles.container}>
       {
@@ -107,7 +203,7 @@ export default class Instant extends Component {
         ?
           <View style={styles.container} >
             <SwipeCards
-              cards={this.state.cards}
+              cards={this.state.sortedPlaces}
               loop={false}
               renderNoMoreCards={() => <NoCards />}
               renderCard={(cardData) => <Item {...cardData} />}

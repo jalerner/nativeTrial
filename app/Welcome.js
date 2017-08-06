@@ -4,7 +4,6 @@ import Tab from './Tab'
 const {FBLoginManager} = require('react-native-facebook-login');
 import * as firebase from 'firebase';
 
-
 import {
   AppRegistry,
   StyleSheet,
@@ -31,14 +30,17 @@ export default class Welcome extends Component {
   constructor(props) {
     super(props)
     this.db = firebaseApp.database()
+    this.userId = 0;
   }
 
-  listenForItems(dbRef) {
-    dbRef.on('value', snap => console.log("VALUE SHOULD BE HERE:", snap.val()))
-  }
+  // listenForItems(dbRef) {
+  //   dbRef.on('value', snap => console.log("VALUE SHOULD BE HERE:", snap.val()))
+  // }
 
-  writeUserData(user) {
-    this.db.ref('users/' + user.uid).set({
+  // does not remove test property on update command
+  writeUserData(user) { 
+    this.setState({ userId: user.uid })
+    this.db.ref('users/' + user.uid).update({
       userId: user.uid,
       email: user.email,
       name: user.displayName
@@ -55,7 +57,7 @@ export default class Welcome extends Component {
             .signInWithCredential(credential)
             .then((user) => {
               this.writeUserData(user)
-              navigate('Tab')
+              navigate('Tab', { userId: this.state.userId })
             })
             .catch(error => console.error(error));
         } else {
@@ -75,7 +77,7 @@ export default class Welcome extends Component {
           style={styles.welcomeImage}
           source={require('../public/shades.png')}/>
         <TouchableHighlight
-          onPress={() => navigate('Tab')}>
+          onPress={() => this._fbAuth(navigate)}>
           <Image
             style={styles.logoImage}
             source={require('../public/SeekLogo.png')}/>
@@ -118,3 +120,4 @@ const styles = StyleSheet.create({
     marginTop: 100,
   }
 });
+
