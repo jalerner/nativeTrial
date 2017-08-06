@@ -32,41 +32,20 @@ export default class Welcome extends Component {
 
   constructor(props) {
     super(props)
-    this.dbRef = firebaseApp.database().ref()
+    this.db = firebaseApp.database()
   }
 
   listenForItems(dbRef) {
     dbRef.on('value', snap => console.log("VALUE SHOULD BE HERE:", snap.val()))
   }
 
-  // listenForItems(dbRef) {
-  //   dbRef.on('value', (snap) => {
-  //     let items = []
-  //     snap.forEach((child) => {
-  //       console.log("ind db item:", child)
-  //       items.push({
-  //         title: child.val().title,
-  //         _key: child._key,
-  //         userId: child.userId,
-  //         email: child.email,
-  //         name: child.name
-  //       });
-  //     });
-  //     console.log("should be database children as an array:", items)
-  //     // this.setState({
-  //     //   dataSource: this.state.dataSource.cloneWithRows(items)
-  //     // })
-  //   })
-  // }
-
-  componentDidMount() {
-    this.listenForItems(this.dbRef)
+  writeUserData(user) {
+    this.db.ref('users/' + user.uid).set({
+      userId: user.uid,
+      email: 'THISISATEST EDIT EMAIL',
+      name: user.displayName
+    })
   }
-
-
-    // this.itemsRef = firebaseApp.database().ref()
-    // this.itemsRef.push({Olivia: 'LETS EDIT THE DATABASE'})
-
 
   _fbAuth(navigate) {
   // const { navigate } = this.props.navigation
@@ -78,11 +57,7 @@ export default class Welcome extends Component {
             .auth()
             .signInWithCredential(credential)
             .then((user) => {
-              this.dbRef.push({
-                userId: user.uid,
-                email: user.email,
-                name: user.displayName
-              })
+              this.writeUserData(user)
               navigate('Tab')
             })
             .catch(error => console.error(error));
@@ -146,4 +121,3 @@ const styles = StyleSheet.create({
     marginTop: 100,
   }
 });
-
