@@ -45,6 +45,11 @@ export default class Welcome extends Component {
       email: user.email,
       name: user.displayName
     })
+    this.db.ref('emailsUsers/' +
+      user.email.slice(0, user.email.indexOf('.'))
+    ).update({
+      userId: user.uid
+    })
   }
 
   _fbAuth(navigate) {

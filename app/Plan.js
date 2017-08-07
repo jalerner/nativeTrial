@@ -7,8 +7,6 @@ import SortableListView from 'react-native-sortable-listview';
 import Row from './Row';
 import { StackNavigator } from 'react-navigation';
 
-
-
 export default class Plan extends Component {
   constructor(props) {
     super(props);
@@ -78,7 +76,10 @@ export default class Plan extends Component {
           renderRow={row => <Row data={row} deleteMe={this.deleteRow}/>}
         />
         {this.state.order.length ?
-          <Button disabled={false} onPress={() => navigate('Schedule', {category: catIdArr})} style={styles.go}rounded iconRight dark>
+          <Button
+            disabled={false}
+            onPress={() => navigate('Schedule', {category: catIdArr, userId: this.props.userId})}
+            style={styles.go}rounded iconRight dark>
             <Text>Seek</Text>
             <Icon name='arrow-forward' />
           </Button>
