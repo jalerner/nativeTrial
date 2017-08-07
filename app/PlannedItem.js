@@ -31,13 +31,27 @@ export default class PlannedItem extends React.Component {
         <Card
           title={this.props.venue.name}>
           {!this.props.ready &&
-          <Icon
-            raised
-            reverse
-            name='refresh'
-            type='font-awesome'
-            color='#f50'
-            onPress={() => this.props.refresh(this.props.catId)} />
+            <Button
+              raised
+              buttonStyle={{backgroundColor: '#ff7043'}}
+              icon={{name: 'refresh'}}
+              title='Give Me Something new!'
+              onPress={() => this.props.refresh(this.props.catId)} />
+          }
+          {this.props.go === 'complete' ? <Button raised disabled disabledStyle={{backgroundColor: '#4db6ac'}} icon={{name: 'check'}}
+              title='COMPLETE' />
+          :
+            <View>
+            {this.props.go && this.props.ready &&
+              <Button buttonStyle={{backgroundColor: '#9ccc65'}} raised onPress={()=>this.props.takeMe(this.props.venue.location.lat, this.props.venue.location.lng)}
+                icon={{name: 'directions-walk'}}
+                title='TAKE ME THERE' />
+            }
+            </View>
+          }
+          {!this.props.go && this.props.ready &&
+            <Button raised disabled disabledStyle={{backgroundColor: '#03a9f4'}}
+              title='UPCOMING' />
           }
       </Card>
     );

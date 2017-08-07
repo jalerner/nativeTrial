@@ -12,7 +12,7 @@ import { stringify } from 'query-string';
 import Tabs from 'react-native-tabs';
 import Tab from './Tab'
 import NoCards from './NoCards'
-import {Button} from 'native-base'
+import {Button, Content, Container} from 'native-base'
 const _ = require('lodash');
 
 import {
@@ -39,6 +39,8 @@ export default class Schedule extends Component{
     super(props);
     this.state={
       cards: {},
+      savedDay: undefined,
+      currentPlaceIndex: 0,
       outOfCards: false,
       headerLocation: null,
       last4sqCall: {},
@@ -49,6 +51,8 @@ export default class Schedule extends Component{
       catID: this.props.navigation.state.params.category
     }
     this.refresh = this.refresh.bind(this)
+    this.handleGo = this.handleGo.bind(this)
+    this.takeMe = this.takeMe.bind(this)
   }
 
   componentWillMount() {
@@ -83,6 +87,23 @@ export default class Schedule extends Component{
     this.setState({cards: currentCards})
   }
 
+  takeMe(lat, lng){
+    const url = `http://maps.apple.com/?saddr=(${this.state.region.latitude}, ${this.state.region.longitude})&daddr=(${lat},${lng})&dirflg=w`;
+    Linking.openURL(url).catch(err => console.error('An error occurred', err));
+    let updateIndex = this.state.savedDay
+    updateIndex[this.state.currentPlaceIndex].go = 'complete';
+    if(updateIndex[this.state.currentPlaceIndex + 1]) updateIndex[this.state.currentPlaceIndex + 1].go = true;
+    this.setState({savedDay: updateIndex, currentPlaceIndex: this.state.currentPlaceIndex+=1})
+  }
+
+  handleGo(){
+    const newPlaces = Object.keys(this.state.cards).map(key => {
+      return({venue: this.state.cards[key].places[this.state.cards[key].index], go:false})
+    })
+    newPlaces[0].go = true
+    this.setState({ready: true, savedDay: newPlaces})
+  }
+
 
   fetchVenues(region, lookingFor) {
     const query = this.venuesQuery(region, lookingFor);
@@ -91,9 +112,9 @@ export default class Schedule extends Component{
              .then(fetch.throwErrors)
               .then(res => res.json())
               .then(json => {
-                console.log(json.response.venues)
+                console.log("LOOK HREE", json.response)
                 let currCards = this.state.cards
-                currCards[category] = {index: 0, places: json.response.venues}
+                currCards[category] = {index: 0, places: json.response.venues, go: false}
                 console.log(currCards)
                 this.setState({cards: currCards})
               })
@@ -115,24 +136,35 @@ export default class Schedule extends Component{
     });
   }
   render() {
-    console.log(this.state.cards)
+    console.log(this.state)
     return (
-        <View>
-        {this.state.cards ?
-          Object.keys(this.state.cards).map(key => {
-            return (
-                      <PlannedItem catId={key} ready={this.state.ready} refresh={this.refresh} venue={this.state.cards[key].places[this.state.cards[key].index]} />
-                    )
-          })
-          :
-          <Loading />
+        <Container>
+          {this.state.savedDay ?
+            this.state.savedDay.map(item => {
+              return (
+                        <PlannedItem key={item.venue.name} ready={this.state.ready} go={item.go} venue={item.venue} takeMe={this.takeMe} />
+                      )
+            })
+
+            :
+          <Content scrollEnabled={true}>
+            {this.state.cards ?
+              Object.keys(this.state.cards).map(key => {
+                return (
+                          <PlannedItem key={key} catId={key} ready={this.state.ready} refresh={this.refresh} go={this.state.cards[key].go} venue={this.state.cards[key].places[this.state.cards[key].index]} />
+                        )
+              })
+              :
+              <Loading />
+            }
+          {!this.state.ready &&
+           <Button style={styles.letsGo} rounded success onPress={this.handleGo}>
+              <Text style={{color: 'white'}}>Let's Go!</Text>
+            </Button>
+          }
+          </Content>
         }
-        {!this.state.ready &&
-         <Button rounded success onPress={()=>this.setState({ready:true})}>
-            <Text style={{color: 'white'}}>Let's Go!</Text>
-          </Button>
-        }
-        </View>
+        </Container>
 
 
     )
@@ -140,12 +172,16 @@ export default class Schedule extends Component{
 }
 
 const styles = StyleSheet.create({
-container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 20
+  container: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 20
+    },
+  letsGo: {
+    marginTop: 10,
+    alignSelf: 'center'
   }
 })
 
