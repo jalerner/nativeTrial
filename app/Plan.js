@@ -15,10 +15,13 @@ export default class Plan extends Component {
       data: {},
       order: [],
       catIds: {
-        Food: "4d4b7105d754a06374d81259",
+        Eat: "4d4b7105d754a06374d81259",
+        Breakfast: '4bf58dd8d48988d143941735',
+        Coffee: '4bf58dd8d48988d1e0931735',
         Entertainment: "4d4b7104d754a06370d81259",
         Dessert: "4bf58dd8d48988d1d0941735",
-        Social: "4d4b7105d754a06376d81259",
+        Bars: '4bf58dd8d48988d116941735',
+        Social: "4bf58dd8d48988d11f941735",
       }
     }
     this.onValueChange.bind(this);
@@ -58,9 +61,12 @@ export default class Plan extends Component {
                 this.onValueChange.bind(this)
               }
             >
-              <pickerItem label="Food" value="Food" />
+              <pickerItem label="Eat" value="Eat" />
+              <pickerItem label="Breakfast" value="Breakfast" />
+              <pickerItem label="Coffee" value="Coffee" />
               <pickerItem label="Entertainment" value="Entertainment" />
               <pickerItem label="Dessert" value="Dessert" />
+              <pickerItem label="Bars" value="Bars" />
               <pickerItem label="Social" value="Social" />
             </Picker>
           </Form>
@@ -78,7 +84,10 @@ export default class Plan extends Component {
         {this.state.order.length ?
           <Button
             disabled={false}
-            onPress={() => navigate('Schedule', {category: catIdArr, userId: this.props.userId})}
+            onPress={() => {
+              console.log(catIdArr, this.state.order)
+              navigate('Schedule', {category: catIdArr, userId: this.props.userId})}
+            }
             style={styles.go}rounded iconRight dark>
             <Text>Seek</Text>
             <Icon name='arrow-forward' />

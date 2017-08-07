@@ -12,7 +12,7 @@ import { stringify } from 'query-string';
 import Tabs from 'react-native-tabs';
 import Tab from './Tab'
 import NoCards from './NoCards'
-import {Button, Content, Container} from 'native-base'
+import {Button, Content, Container, Icon} from 'native-base'
 const _ = require('lodash');
 import * as firebase from 'firebase';
 import { firebaseApp } from './Welcome';
@@ -57,6 +57,8 @@ export default class Schedule extends Component{
     this.handleGo = this.handleGo.bind(this)
     this.takeMe = this.takeMe.bind(this)
     this.db = firebaseApp.database()
+    this.postDayToDB = this.postDayToDB.bind(this)
+    this.userShare = this.userShare.bind(this)
   }
 
   componentWillMount() {
@@ -100,12 +102,13 @@ export default class Schedule extends Component{
     this.setState({savedDay: updateIndex, currentPlaceIndex: this.state.currentPlaceIndex+=1})
   }
 
-  handleGo(){
+  handleGo(userId){
+    console.log("USSER ID", userId)
     const newPlaces = Object.keys(this.state.cards).map(key => {
       return({venue: this.state.cards[key].places[this.state.cards[key].index], go:false})
     })
     newPlaces[0].go = true
-    this.setState({ready: true, savedDay: newPlaces})
+    this.setState({ready: true, savedDay: newPlaces}, () => this.postDayToDB(userId))
   }
 
 
@@ -141,10 +144,11 @@ export default class Schedule extends Component{
   }
 
   postDayToDB(userId) {
+    console.log("SAVVED DAY", this.state.savedDay)
     let currentDate = new Date()
     this.db.ref('users/' + userId +
       '/schedule/').push({
-        scheduleInfo: this.state.cards
+        scheduleInfo: this.state.savedDay
       })
   }
 
@@ -156,26 +160,28 @@ export default class Schedule extends Component{
     );
   }
 
-//   findUsersMatchingEmail(email) {
-//     this.db.ref('/users/').orderByChild('email').equalTo(email)
-//       .once('value', function(snap) {
-//         console.log( "HERE IS THE LARGE SNAP:", snap.val() );
-//     });
-// }
-
   userShare(email) {
     console.log("email here:", email.slice(0, email.indexOf('.')))
     this.db.ref('emailsUsers/' +
       email.slice(0, email.indexOf('.')))
       .once('value')
-      .then(snap => console.log("SNAP HERER:", snap.val()))
+      .then(snap => {
+        let userId = snap.val().userId
+        this.db.ref('users/' + userId +
+        '/schedule/' + 'shared/')
+          .push(this.state.savedDay)
+      })
   }
+
 
   render() {
     const userId = this.props.navigation.state.params.userId
     console.log(this.props)
     return (
         <Container>
+        <Button style={{alignSelf: 'flex-end'}} transparent onPress={() => this.requestShareEmail()}>
+            <Icon name='ios-share-outline' />
+          </Button>
           {this.state.savedDay ?
             this.state.savedDay.map(item => {
               return (
@@ -196,21 +202,13 @@ export default class Schedule extends Component{
             }
           {!this.state.ready &&
            <Button style={styles.letsGo} rounded success onPress={() => {
-                                                                  this.handleGo()
-                                                                  this.postDayToDB(userId)
+                                                                  this.handleGo(userId)
+
                                                                  }
                                                                  }>
               <Text style={{color: 'white'}}>Let's Go!</Text>
             </Button>
           }
-          <View style={ styles.bottomButton }>
-              <Button
-                rounded light
-                onPress={() => this.requestShareEmail()}
-              >
-                <Text style={{color: 'green'}}>Share my plan with the World!</Text>
-              </Button>
-            </View>
           </Content>
         }
         </Container>
