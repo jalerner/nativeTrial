@@ -142,7 +142,7 @@ export default class Schedule extends Component{
 
   postDayToDB(userId) {
     let currentDate = new Date()
-    this.db.ref('users/' + userId + 
+    this.db.ref('users/' + userId +
       '/schedule/').push({
         scheduleInfo: this.state.cards
       })
@@ -173,6 +173,7 @@ export default class Schedule extends Component{
 
   render() {
     const userId = this.props.navigation.state.params.userId
+    console.log(this.props)
     return (
         <Container>
           {this.state.savedDay ?
@@ -196,12 +197,13 @@ export default class Schedule extends Component{
           {!this.state.ready &&
            <Button style={styles.letsGo} rounded success onPress={() => {
                                                                   this.handleGo()
-                                                                  this.postDayToDB(userId) 
+                                                                  this.postDayToDB(userId)
                                                                  }
                                                                  }>
               <Text style={{color: 'white'}}>Let's Go!</Text>
             </Button>
-             <View style={ styles.bottomButton }>
+          }
+          <View style={ styles.bottomButton }>
               <Button
                 rounded light
                 onPress={() => this.requestShareEmail()}
@@ -209,8 +211,8 @@ export default class Schedule extends Component{
                 <Text style={{color: 'green'}}>Share my plan with the World!</Text>
               </Button>
             </View>
-          }
           </Content>
+        }
         </Container>
 
 
@@ -228,7 +230,7 @@ const styles = StyleSheet.create({
     },
   letsGo: {
     marginTop: 10,
-    alignSelf: 'center' 
+    alignSelf: 'center'
   },
   bottomButton: {
     alignItems: 'flex-end',
