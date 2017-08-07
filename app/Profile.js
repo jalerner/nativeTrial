@@ -7,7 +7,8 @@ export default class ListDividerExample extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      shared: null
+      shared: null,
+      past: null
     }
     this.db = firebaseApp.database()
   }
@@ -18,10 +19,19 @@ export default class ListDividerExample extends Component {
       '/schedule/' + 'shared/')
         .once('value')
         .then(snap => { this.setState({shared: snap.val()})})
+
+    this.db.ref('users/' + userId +
+      '/schedule/')
+        .once('value')
+        .then(snap => { this.setState({past: snap.val()})})
   }
 
   render() {
     console.log(this.state.shared)
+    const dbProps = this.state.shared ? Object.keys(this.state.shared) : null
+    const dayProps = this.state.past ? Object.keys(this.state.past) : null
+    if(dayProps) dayProps.splice(-1)
+    console.log(dayProps)
     return (
       <Container>
         <Content>
@@ -31,22 +41,29 @@ export default class ListDividerExample extends Component {
             </ListItem>
             <ListItem >
               <Content>
-                <Card>
-                <CardItem header>
-                  <Text>Day</Text>
-                  <Right>
-                      <Icon name="arrow-forward" />
-                  </Right>
-                </CardItem>
-                <CardItem>
-                    <Icon active name="logo-googleplus" />
-                    <Text>Google Plus</Text>
-                  </CardItem>
-                  <CardItem>
-                    <Icon active name="logo-googleplus" />
-                    <Text>Google Plus</Text>
-                  </CardItem>
-                </Card>
+                {dayProps && dayProps.map(plan => {
+                  return (
+                      <Card key={plan}>
+                        <CardItem header>
+                          <Text>Day</Text>
+                          <Right>
+                              <Icon name="arrow-forward" />
+                          </Right>
+                        </CardItem>
+                        {
+                          this.state.past[plan].scheduleInfo.map(placeObject => {
+                            return (
+                                      <CardItem key={placeObject.venue.id}>
+                                        <Icon active name="ios-pin" />
+                                        <Text>{placeObject.venue.name}</Text>
+                                      </CardItem>
+                                    )
+                          })
+                        }
+                    </Card>
+                    )
+                })
+                }
               </Content>
             </ListItem>
             <ListItem itemDivider>
@@ -54,22 +71,27 @@ export default class ListDividerExample extends Component {
             </ListItem>
             <ListItem>
               <Content>
-                <Card>
-                <CardItem header>
-                  <Text>Day</Text>
-                  <Right>
-                      <Icon name="arrow-forward" />
-                  </Right>
-                </CardItem>
-                <CardItem>
-                    <Icon active name="logo-googleplus" />
-                    <Text>Google Plus</Text>
-                  </CardItem>
-                  <CardItem>
-                    <Icon active name="logo-googleplus" />
-                    <Text>Google Plus</Text>
-                  </CardItem>
-                </Card>
+                {dbProps && dbProps.map(plan => {
+                  return(
+                    <Card key={plan}>
+                    <CardItem header>
+                      <Text>Day</Text>
+                      <Right>
+                          <Icon name="arrow-forward" />
+                      </Right>
+                    </CardItem>
+                      {this.state.shared[plan].map(placeObject => {
+                        return (
+                                  <CardItem key={placeObject.venue.id}>
+                                    <Icon active name="ios-pin" />
+                                    <Text>{placeObject.venue.name}</Text>
+                                  </CardItem>
+                                )
+                      })
+                    }
+                    </Card>
+                  )
+                })}
               </Content>
             </ListItem>
           </List>

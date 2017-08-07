@@ -38,7 +38,7 @@ export default class Welcome extends Component {
   // }
 
   // does not remove test property on update command
-  writeUserData(user) { 
+  writeUserData(user) {
     this.setState({ userId: user.uid })
     this.db.ref('users/' + user.uid).update({
       userId: user.uid,
@@ -72,8 +72,6 @@ export default class Welcome extends Component {
    }
 
   render() {
-
-    console.log("HERE IS THE DB STATE OBJECT:", this.dbRef)
     const { navigate } = this.props.navigation
 
     return (
@@ -93,11 +91,11 @@ export default class Welcome extends Component {
           title='Login with Facebook'
           large={false}
           backgroundColor='#3d5a99'
-          color='black'
+          color='white'
           icon={{
-            name: 'facebook-official', 
+            name: 'facebook-official',
             type: 'font-awesome',
-            color: 'black'
+            color: 'white'
           }}
         />
       </View>
