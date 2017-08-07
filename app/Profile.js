@@ -7,7 +7,8 @@ export default class ListDividerExample extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      shared: null
+      shared: null,
+      past: null
     }
     this.db = firebaseApp.database()
   }
@@ -18,10 +19,16 @@ export default class ListDividerExample extends Component {
       '/schedule/' + 'shared/')
         .once('value')
         .then(snap => { this.setState({shared: snap.val()})})
+
+    this.db.ref('users/' + userId +
+      '/schedule/')
+        .once('value')
+        .then(snap => { this.setState({past: snap.val()})})
   }
 
   render() {
-    console.log(this.state.shared)
+    console.log(this.state.past)
+    const dbProps = this.state.shared ? Object.keys(this.state.shared) : null
     return (
       <Container>
         <Content>
@@ -61,14 +68,16 @@ export default class ListDividerExample extends Component {
                       <Icon name="arrow-forward" />
                   </Right>
                 </CardItem>
-                <CardItem>
-                    <Icon active name="logo-googleplus" />
-                    <Text>Google Plus</Text>
-                  </CardItem>
-                  <CardItem>
-                    <Icon active name="logo-googleplus" />
-                    <Text>Google Plus</Text>
-                  </CardItem>
+                {dbProps &&
+                  this.state.shared[dbProps[0]].map(placeObject => {
+                    return (
+                              <CardItem key={placeObject.venue.id}>
+                                <Icon active name="ios-pin" />
+                                <Text>{placeObject.venue.name}</Text>
+                              </CardItem>
+                            )
+                  })
+                }
                 </Card>
               </Content>
             </ListItem>
