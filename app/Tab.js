@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import Instant from './Instant';
 import Plan from './Plan';
+import Profile from './Profile';
 import MaterialCommunity from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -53,14 +54,14 @@ export default class Tab extends Component {
           >
           <Plan navigate={navigate} userId={ userId }/>
         </Ionicons.TabBarItem>
-        <Ionicons.TabBarItem
+        <FontAwesome.TabBarItem
           selected={this.state.selectedTab === 'Favs'}
-          title="Favs"
-          iconName="md-heart"
+          title="Me"
+          iconName="user"
           onPress={() => this.setState({selectedTab: 'Favs'})}
           >
-          <Instant />
-        </Ionicons.TabBarItem>
+          <Profile navigate={navigate} userId={ userId }/>
+        </FontAwesome.TabBarItem>
       </TabBarIOS>
     )
   }
