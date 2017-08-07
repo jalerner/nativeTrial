@@ -14,13 +14,16 @@ import Tab from './Tab'
 import NoCards from './NoCards'
 import {Button} from 'native-base'
 const _ = require('lodash');
+import * as firebase from 'firebase';
+import { firebaseApp } from './Welcome';
 
 import {
   AppRegistry,
   StyleSheet,
   Text,
   View,
-  Linking
+  Linking,
+  AlertIOS
 } from 'react-native';
 
 const CLIENT_ID = '40a55d80f964a52020f31ee3';
@@ -37,7 +40,7 @@ import {
 export default class Schedule extends Component{
   constructor(props) {
     super(props);
-    this.state={
+    this.state = {
       cards: {},
       outOfCards: false,
       headerLocation: null,
@@ -49,6 +52,7 @@ export default class Schedule extends Component{
       catID: this.props.navigation.state.params.category
     }
     this.refresh = this.refresh.bind(this)
+    this.db = firebaseApp.database()
   }
 
   componentWillMount() {
@@ -114,23 +118,79 @@ export default class Schedule extends Component{
       venuePhotos: 1
     });
   }
+
+  postDayToDB(userId) {
+    let currentDate = new Date()
+    this.db.ref('users/' + userId + 
+      '/schedule/').push({
+        scheduleInfo: this.state.cards
+      })
+  }
+
+  requestShareEmail() {
+    AlertIOS.prompt(
+      'Share with another Seek user via email:',
+      null,
+      text => this.userShare(text)
+    );
+  }
+
+//   findUsersMatchingEmail(email) {
+//     this.db.ref('/users/').orderByChild('email').equalTo(email)
+//       .once('value', function(snap) {
+//         console.log( "HERE IS THE LARGE SNAP:", snap.val() );
+//     });
+// }
+
+  userShare(email) {
+    console.log("email here:", email.slice(0, email.indexOf('.')))
+    this.db.ref('emailsUsers/' +
+      email.slice(0, email.indexOf('.')))
+      .once('value')
+      .then(snap => console.log("SNAP HERER:", snap.val()))
+  }
+
   render() {
-    console.log(this.state.cards)
+    const userId = this.props.navigation.state.params.userId
     return (
         <View>
         {this.state.cards ?
-          Object.keys(this.state.cards).map(key => {
+          Object.keys(this.state.cards).map(key => { // key=cat id
             return (
-                      <PlannedItem catId={key} ready={this.state.ready} refresh={this.refresh} venue={this.state.cards[key].places[this.state.cards[key].index]} />
-                    )
+              <PlannedItem
+                key={key}
+                catId={key}
+                ready={this.state.ready}
+                refresh={this.refresh}
+                venue={this.state.cards[key].places[this.state.cards[key].index]} />
+            )
           })
           :
           <Loading />
         }
         {!this.state.ready &&
-         <Button rounded success onPress={()=>this.setState({ready:true})}>
-            <Text style={{color: 'white'}}>Let's Go!</Text>
-          </Button>
+          <View>
+            <View>
+              <Button
+                rounded success
+                onPress={() => {
+                  console.log("here is the cards on state:", this.state.cards)
+                  this.postDayToDB(userId) 
+                  this.setState({ready:true})}
+                }
+              >
+                <Text style={{color: 'white'}}>Let's Go!</Text>
+              </Button>
+            </View>
+            <View style={ styles.bottomButton }>
+              <Button
+                rounded light
+                onPress={() => this.requestShareEmail()}
+              >
+                <Text style={{color: 'green'}}>Share my plan with the World!</Text>
+              </Button>
+            </View>
+          </View>
         }
         </View>
 
@@ -140,14 +200,19 @@ export default class Schedule extends Component{
 }
 
 const styles = StyleSheet.create({
-container: {
+  container: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 20
+  },
+  bottomButton: {
+    alignItems: 'flex-end',
+    alignSelf: 'center'
   }
 })
+
 
 // const styles = StyleSheet.create({
 //   card: {
