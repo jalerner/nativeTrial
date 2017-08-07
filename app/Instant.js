@@ -217,7 +217,6 @@ return stringify({
   }
 
   render() {
-    console.log("HERE ARE THE SORTED PALCES:", this.state.sortedPlaces)
     return (
       <View style={styles.container}>
       {
@@ -227,8 +226,8 @@ return stringify({
             <SwipeCards
               cards={this.state.sortedPlaces}
               loop={false}
-              renderNoMoreCards={() => <NoCards />}
               renderCard={(cardData) => <Item {...cardData} />}
+              renderNoMoreCards={() => <Loading />}
               showYup={true}
               showNope={true}
               handleYup={this.handleYup}
