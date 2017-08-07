@@ -27,8 +27,11 @@ export default class ListDividerExample extends Component {
   }
 
   render() {
-    console.log(this.state.past)
+    console.log(this.state.shared)
     const dbProps = this.state.shared ? Object.keys(this.state.shared) : null
+    const dayProps = this.state.past ? Object.keys(this.state.past) : null
+    if(dayProps) dayProps.splice(-1)
+    console.log(dayProps)
     return (
       <Container>
         <Content>
@@ -38,22 +41,29 @@ export default class ListDividerExample extends Component {
             </ListItem>
             <ListItem >
               <Content>
-                <Card>
-                <CardItem header>
-                  <Text>Day</Text>
-                  <Right>
-                      <Icon name="arrow-forward" />
-                  </Right>
-                </CardItem>
-                <CardItem>
-                    <Icon active name="logo-googleplus" />
-                    <Text>Google Plus</Text>
-                  </CardItem>
-                  <CardItem>
-                    <Icon active name="logo-googleplus" />
-                    <Text>Google Plus</Text>
-                  </CardItem>
-                </Card>
+                {dayProps && dayProps.map(plan => {
+                  return (
+                      <Card key={plan}>
+                        <CardItem header>
+                          <Text>Day</Text>
+                          <Right>
+                              <Icon name="arrow-forward" />
+                          </Right>
+                        </CardItem>
+                        {
+                          this.state.past[plan].scheduleInfo.map(placeObject => {
+                            return (
+                                      <CardItem key={placeObject.venue.id}>
+                                        <Icon active name="ios-pin" />
+                                        <Text>{placeObject.venue.name}</Text>
+                                      </CardItem>
+                                    )
+                          })
+                        }
+                    </Card>
+                    )
+                })
+                }
               </Content>
             </ListItem>
             <ListItem itemDivider>
@@ -61,24 +71,27 @@ export default class ListDividerExample extends Component {
             </ListItem>
             <ListItem>
               <Content>
-                <Card>
-                <CardItem header>
-                  <Text>Day</Text>
-                  <Right>
-                      <Icon name="arrow-forward" />
-                  </Right>
-                </CardItem>
-                {dbProps &&
-                  this.state.shared[dbProps[0]].map(placeObject => {
-                    return (
-                              <CardItem key={placeObject.venue.id}>
-                                <Icon active name="ios-pin" />
-                                <Text>{placeObject.venue.name}</Text>
-                              </CardItem>
-                            )
-                  })
-                }
-                </Card>
+                {dbProps && dbProps.map(plan => {
+                  return(
+                    <Card key={plan}>
+                    <CardItem header>
+                      <Text>Day</Text>
+                      <Right>
+                          <Icon name="arrow-forward" />
+                      </Right>
+                    </CardItem>
+                      {this.state.shared[plan].map(placeObject => {
+                        return (
+                                  <CardItem key={placeObject.venue.id}>
+                                    <Icon active name="ios-pin" />
+                                    <Text>{placeObject.venue.name}</Text>
+                                  </CardItem>
+                                )
+                      })
+                    }
+                    </Card>
+                  )
+                })}
               </Content>
             </ListItem>
           </List>
